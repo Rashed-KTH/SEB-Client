@@ -1,0 +1,18 @@
+﻿@{
+    ViewData["Title"] = "Transactions Page";
+}
+
+<h4>Click On Transaction id to get details for Account : @ViewData["accountId"]</h4>
+
+@if (ViewData["transactions"] != null)
+{
+    <ul>
+        @foreach (var bookedTransaction in ViewData["transactions"] as IList<Booked>)
+        {
+            <li>
+                <a asp-action="GetTransaction" asp-controller="Transaction" asp-route-accountId=@ViewData["accountId"] asp-route-transactionId=@bookedTransaction.TransactionId>@bookedTransaction.TransactionId</a>
+            </li>
+        }
+    </ul>
+}
+
