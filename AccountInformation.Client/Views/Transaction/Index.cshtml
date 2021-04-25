@@ -10,7 +10,7 @@
         @foreach (var bookedTransaction in ViewData["transactions"] as IList<Booked>)
         {
             <li>
-                <a asp-action="GetTransaction" asp-controller="Transaction" asp-route-accountId=@ViewData["accountId"] asp-route-transactionId=@bookedTransaction.TransactionId>@bookedTransaction.TransactionId</a>
+                <a asp-action="GetTransactionDetail" asp-controller="Transaction" asp-route-accountId=@ViewData["accountId"] asp-route-transactionId=@bookedTransaction.TransactionId>@bookedTransaction.TransactionId</a>
             </li>
         }
     </ul>

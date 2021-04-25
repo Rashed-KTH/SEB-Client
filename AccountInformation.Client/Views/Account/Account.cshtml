@@ -1,0 +1,17 @@
+﻿@{
+    ViewData["Title"] = "Account Page";
+}
+
+<h3>Click On account to get Transaction ids</h3>
+
+@if (ViewData["accounts"] != null)
+{
+    <ul>
+        @foreach (var account in ViewData["accounts"] as IList<Account>)
+        {
+        <li>
+            <a asp-action="Index" asp-controller="Transaction" asp-route-accountId=@account.ResourceId>@account.OwnerName (@account.ResourceId)</a>
+        </li>
+        }
+    </ul>
+}

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Threading.Tasks;
-using System.Web;
-using Microsoft.AspNetCore.Http;
+using AccountInformation.Client.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -12,9 +8,12 @@ namespace AccountInformation.Client.Controllers
 {
     public class TransactionController : Controller
     {
+        private const string TRANSACTION_PATH = @"ais/v7/identified2/accounts/{0}/transactions?bookingStatus=booked";
+        private const string TRANSACTION_DETAIL_PATH = @"/ais/v7/identified2/accounts/{0}/transactions/{1}";
+
         private readonly IHttpClientFactory httpClientFactory;
 
-        public TransactionController(IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
+        public TransactionController(IHttpClientFactory httpClientFactory)
         {
             this.httpClientFactory = httpClientFactory;
         }
@@ -22,16 +21,14 @@ namespace AccountInformation.Client.Controllers
         public async Task<IActionResult>  Index(string accountId)
         {
             var client = httpClientFactory.CreateClient("APIClient");
-            var request = new HttpRequestMessage(HttpMethod.Get, string.Format($"ais/v7/identified2/accounts/{accountId}/transactions?bookingStatus=booked"));
-
-            request.Headers.Add("X-Request-ID", Guid.NewGuid().ToString());
-            request.Headers.Add("PSU-IP-Address", "192.168.1.101");
+            var request = new HttpRequestMessage(HttpMethod.Get, string.Format(TRANSACTION_PATH, accountId));
 
             var response = await client.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
             var data = await response.Content.ReadAsStringAsync();
-            var transactions = JsonConvert.DeserializeObject<AccountInformation.Client.Models.Transaction>(data);
+            if (data == null) return Content("Empty payload returned");
+            var transactions = JsonConvert.DeserializeObject<Transaction>(data);
 
             ViewData["transactions"] = transactions.BookedWraper.Booked;
             ViewData["accountId"] = accountId;
@@ -39,18 +36,15 @@ namespace AccountInformation.Client.Controllers
             return View();
         }
 
-        public async Task<IActionResult> GetTransaction(string accountId, string transactionId) {
+        public async Task<IActionResult> GetTransactionDetail(string accountId, string transactionId) {
             var client = httpClientFactory.CreateClient("APIClient");
-            var request = new HttpRequestMessage(HttpMethod.Get, string.Format($"/ais/v7/identified2/accounts/{accountId}/transactions/{transactionId}"));
-
-            request.Headers.Add("X-Request-ID", Guid.NewGuid().ToString());
-            request.Headers.Add("PSU-IP-Address", "192.168.1.101");
+            var request = new HttpRequestMessage(HttpMethod.Get, string.Format(TRANSACTION_DETAIL_PATH, accountId, transactionId));
 
             var response = await client.SendAsync(request);
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound) {
-                return Content("This transaction's detail is not found, please try later");
-            } 
-
+                return Content("Transaction's detail is not found, please try later");
+            }
+            response.EnsureSuccessStatusCode();
             var data = await response.Content.ReadAsStringAsync();
 
             return Content(data);
